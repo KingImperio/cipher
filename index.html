@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cipher — Password Generator</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --surface: #0D1117;
+  --surface-card: #161B22;
+  --surface-raised: #1C2128;
+  --surface-input: #21262D;
+  --surface-display: #0D1117;
+  --accent: #7FBA00;
+  --accent-hover: #6EA000;
+  --accent-light: rgba(127, 186, 0, 0.12);
+  --text-primary: #C9D1D9;
+  --text-muted: #6E7681;
+  --text-dim: #484F58;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-focus: rgba(127, 186, 0, 0.4);
+  --strength-weak: #F85149;
+  --strength-fair: #D29922;
+  --strength-good: #E3B341;
+  --strength-strong: #7FBA00;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --font-body: 'Satoshi', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--surface);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+}
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.password-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.password-display {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--surface-display);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  min-height: 56px;
+}
+
+.password-text {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  word-break: break-all;
+  line-height: 1.4;
+  user-select: all;
+  cursor: text;
+}
+
+.password-text.list-mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  font-size: var(--text-sm);
+}
+
+.password-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.password-item:last-child {
+  border-bottom: none;
+}
+
+.password-item-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  word-break: break-all;
+  flex: 1;
+  user-select: all;
+}
+
+.btn-copy {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+  background: var(--surface-input);
+  color: var(--text-primary);
+  border-color: var(--text-dim);
+}
+
+.btn-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-copy svg {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-copy.copied {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.strength-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.strength-bar {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+}
+
+.strength-segment {
+  height: 4px;
+  flex: 1;
+  background: var(--surface-input);
+  border-radius: 2px;
+  transition: background 0.3s ease;
+}
+
+.strength-segment.filled-1 { background: var(--strength-weak); }
+.strength-segment.filled-2 { background: var(--strength-fair); }
+.strength-segment.filled-3 { background: var(--strength-good); }
+.strength-segment.filled-4 { background: var(--strength-strong); }
+
+.strength-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  min-width: 60px;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.strength-label[data-level="1"] { color: var(--strength-weak); }
+.strength-label[data-level="2"] { color: var(--strength-fair); }
+.strength-label[data-level="3"] { color: var(--strength-good); }
+.strength-label[data-level="4"] { color: var(--strength-strong); }
+
+.btn-generate {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--surface);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-generate:hover {
+  background: var(--accent-hover);
+}
+
+.btn-generate:active {
+  transform: scale(0.98);
+}
+
+.btn-generate:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.options-section {
+  border-top: 1px solid var(--border);
+  padding-top: var(--spacing-lg);
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.option-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.option-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  min-width: 24px;
+  text-align: right;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.slider-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 60px;
+}
+
+.slider-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  min-width: 24px;
+  text-align: right;
+}
+
+input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--surface-input);
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  background: var(--surface-input);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--surface);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-item input[type="checkbox"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.checkbox-item input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.checkbox-item label {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.toggle-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  background: var(--surface-input);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.toggle-switch.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-switch.on::after {
+  transform: translateX(20px);
+  background: var(--surface);
+}
+
+.toggle-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-copy-all {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: var(--spacing-md);
+}
+
+.btn-copy-all:hover {
+  background: var(--accent-light);
+}
+
+.btn-copy-all:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-copy-all.copied {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.shortcut-hint {
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  margin-top: var(--spacing-lg);
+}
+
+.shortcut-hint kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--surface-input);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+@media (max-width: 400px) {
+  .card {
+    padding: var(--spacing-lg);
+  }
+
+  .password-text {
+    font-size: 16px;
+  }
+
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <div class="password-section">
+      <div class="password-display">
+        <div class="password-text" id="password-display"></div>
+        <button class="btn-copy" id="btn-copy" aria-label="Copy password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="strength-section">
+      <div class="strength-bar">
+        <div class="strength-segment" id="seg-1"></div>
+        <div class="strength-segment" id="seg-2"></div>
+        <div class="strength-segment" id="seg-3"></div>
+        <div class="strength-segment" id="seg-4"></div>
+      </div>
+      <div class="strength-label" id="strength-label">--</div>
+    </div>
+
+    <button class="btn-generate" id="btn-generate">Generate</button>
+
+    <div class="options-section">
+      <div class="slider-row">
+        <span class="slider-label">Length</span>
+        <input type="range" id="length-slider" min="8" max="64" value="16">
+        <span class="slider-value" id="length-value">16</span>
+      </div>
+
+      <div class="checkbox-grid">
+        <div class="checkbox-item">
+          <input type="checkbox" id="opt-upper" checked>
+          <label for="opt-upper">Uppercase (A-Z)</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="opt-lower" checked>
+          <label for="opt-lower">Lowercase (a-z)</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="opt-numbers" checked>
+          <label for="opt-numbers">Numbers (0-9)</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="opt-symbols" checked>
+          <label for="opt-symbols">Symbols (!@#$%^&*)</label>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <span class="toggle-label">Exclude ambiguous (0, O, l, 1, I)</span>
+        <button class="toggle-switch" id="toggle-ambiguous" role="switch" aria-checked="false" aria-label="Exclude ambiguous characters"></button>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-label">Quantity</span>
+        <input type="range" id="quantity-slider" min="1" max="10" value="1">
+        <span class="slider-value" id="quantity-value">1</span>
+      </div>
+    </div>
+
+    <div id="copy-all-container"></div>
+  </div>
+
+  <div class="shortcut-hint">
+    <kbd>Ctrl</kbd> + <kbd>G</kbd> to regenerate
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var CHARSETS = {
+    upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    lower: 'abcdefghijklmnopqrstuvwxyz',
+    numbers: '0123456789',
+    symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  };
+
+  var AMBIGUOUS = '0Ol1I';
+
+  var COMMON_PATTERNS = [
+    'password', 'letmein', 'welcome', 'admin', 'login', 'abc123',
+    'qwerty', '123456', '12345678', '123456789', '1234567890',
+    'iloveyou', 'princess', 'sunshine', 'trustno1', 'baseball',
+    'shadow', 'master', 'dragon', 'monkey', 'mustang',
+    'michael', 'football', 'batman', 'passw0rd', 'hello',
+    'charlie', 'donald', 'access', 'whatever', 'pass',
+    'secret', 'abcdef', 'password1', 'qwerty123', '111111',
+    '12345', '1234', 'test', 'guest', 'master123',
+    'admin123', 'root', 'toor', 'changeme', 'default',
+    'passpass', 'password123', 'summer2024', 'winter2024',
+    'spring2024', 'fall2024', 'welcome1', 'p@ssw0rd'
+  ];
+
+  var state = {
+    passwords: [],
+    options: {
+      length: 16,
+      upper: true,
+      lower: true,
+      numbers: true,
+      symbols: true,
+      ambiguous: false,
+      quantity: 1
+    }
+  };
+
+  var els = {
+    display: document.getElementById('password-display'),
+    btnCopy: document.getElementById('btn-copy'),
+    strengthLabel: document.getElementById('strength-label'),
+    seg1: document.getElementById('seg-1'),
+    seg2: document.getElementById('seg-2'),
+    seg3: document.getElementById('seg-3'),
+    seg4: document.getElementById('seg-4'),
+    btnGenerate: document.getElementById('btn-generate'),
+    lengthSlider: document.getElementById('length-slider'),
+    lengthValue: document.getElementById('length-value'),
+    quantitySlider: document.getElementById('quantity-slider'),
+    quantityValue: document.getElementById('quantity-value'),
+    optUpper: document.getElementById('opt-upper'),
+    optLower: document.getElementById('opt-lower'),
+    optNumbers: document.getElementById('opt-numbers'),
+    optSymbols: document.getElementById('opt-symbols'),
+    toggleAmbiguous: document.getElementById('toggle-ambiguous'),
+    copyAllContainer: document.getElementById('copy-all-container')
+  };
+
+  function generatePassword(length, charset) {
+    var array = new Uint32Array(length);
+    crypto.getRandomValues(array);
+    var result = '';
+    for (var i = 0; i < length; i++) {
+      result += charset[array[i] % charset.length];
+    }
+    return result;
+  }
+
+  function buildCharset() {
+    var charset = '';
+    if (state.options.upper) charset += CHARSETS.upper;
+    if (state.options.lower) charset += CHARSETS.lower;
+    if (state.options.numbers) charset += CHARSETS.numbers;
+    if (state.options.symbols) charset += CHARSETS.symbols;
+
+    if (state.options.ambiguous) {
+      charset = charset.split('').filter(function(c) {
+        return AMBIGUOUS.indexOf(c) === -1;
+      }).join('');
+    }
+
+    return charset;
+  }
+
+  function analyzeStrength(password) {
+    var score = 0;
+    var len = password.length;
+
+    if (len >= 8) score += 1;
+    if (len >= 12) score += 1;
+    if (len >= 16) score += 1;
+    if (len >= 24) score += 1;
+
+    var hasUpper = /[A-Z]/.test(password);
+    var hasLower = /[a-z]/.test(password);
+    var hasNumber = /[0-9]/.test(password);
+    var hasSymbol = /[^A-Za-z0-9]/.test(password);
+    var variety = [hasUpper, hasLower, hasNumber, hasSymbol].filter(Boolean).length;
+
+    if (variety >= 2) score += 1;
+    if (variety >= 3) score += 1;
+    if (variety >= 4) score += 1;
+
+    var lower = password.toLowerCase();
+    for (var i = 0; i < COMMON_PATTERNS.length; i++) {
+      if (lower.indexOf(COMMON_PATTERNS[i]) !== -1) {
+        score -= 2;
+        break;
+      }
+    }
+
+    var repeats = 0;
+    for (var j = 0; j < password.length - 1; j++) {
+      if (password[j] === password[j + 1]) repeats++;
+    }
+    if (repeats > 2) score -= 1;
+
+    var sequential = 0;
+    for (var k = 0; k < password.length - 2; k++) {
+      var c1 = password.charCodeAt(k);
+      var c2 = password.charCodeAt(k + 1);
+      var c3 = password.charCodeAt(k + 2);
+      if (c2 === c1 + 1 && c3 === c2 + 1) sequential++;
+      if (c2 === c1 - 1 && c3 === c2 - 1) sequential++;
+    }
+    if (sequential > 1) score -= 1;
+
+    if (score <= 2) return 1;
+    if (score <= 4) return 2;
+    if (score <= 6) return 3;
+    return 4;
+  }
+
+  function getStrengthWord(level) {
+    switch(level) {
+      case 1: return 'Weak';
+      case 2: return 'Fair';
+      case 3: return 'Good';
+      case 4: return 'Strong';
+      default: return '--';
+    }
+  }
+
+  function updateStrength(level) {
+    var segments = [els.seg1, els.seg2, els.seg3, els.seg4];
+    segments.forEach(function(seg, i) {
+      seg.className = 'strength-segment';
+      if (i < level) {
+        seg.classList.add('filled-' + level);
+      }
+    });
+    els.strengthLabel.textContent = getStrengthWord(level);
+    els.strengthLabel.setAttribute('data-level', level);
+  }
+
+  function renderPasswords() {
+    var qty = state.passwords.length;
+
+    if (qty === 1) {
+      els.display.classList.remove('list-mode');
+      els.display.textContent = state.passwords[0];
+      els.copyAllContainer.innerHTML = '';
+    } else {
+      els.display.classList.add('list-mode');
+      els.display.innerHTML = '';
+
+      state.passwords.forEach(function(pwd, i) {
+        var item = document.createElement('div');
+        item.className = 'password-item';
+
+        var text = document.createElement('span');
+        text.className = 'password-item-text';
+        text.textContent = pwd;
+
+        var btn = document.createElement('button');
+        btn.className = 'btn-copy';
+        btn.setAttribute('aria-label', 'Copy password ' + (i + 1));
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        btn.addEventListener('click', function() {
+          copyToClipboard(pwd, btn);
+        });
+
+        item.appendChild(text);
+        item.appendChild(btn);
+        els.display.appendChild(item);
+      });
+
+      els.copyAllContainer.innerHTML = '';
+      var copyAllBtn = document.createElement('button');
+      copyAllBtn.className = 'btn-copy-all';
+      copyAllBtn.textContent = 'Copy all';
+      copyAllBtn.addEventListener('click', function() {
+        var all = state.passwords.join('\n');
+        copyToClipboard(all, copyAllBtn);
+      });
+      els.copyAllContainer.appendChild(copyAllBtn);
+    }
+
+    if (state.passwords.length > 0) {
+      var strength = analyzeStrength(state.passwords[0]);
+      updateStrength(strength);
+    }
+  }
+
+  function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text).then(function() {
+      var icons = btn.querySelectorAll('svg');
+      btn.classList.add('copied');
+      icons[0].style.display = 'none';
+      icons[1].style.display = 'block';
+
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        icons[0].style.display = 'block';
+        icons[1].style.display = 'none';
+      }, 1500);
+    }).catch(function() {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      var icons = btn.querySelectorAll('svg');
+      btn.classList.add('copied');
+      icons[0].style.display = 'none';
+      icons[1].style.display = 'block';
+
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        icons[0].style.display = 'block';
+        icons[1].style.display = 'none';
+      }, 1500);
+    });
+  }
+
+  function generate() {
+    var charset = buildCharset();
+    if (charset.length === 0) {
+      charset = CHARSETS.lower;
+    }
+
+    state.passwords = [];
+    for (var i = 0; i < state.options.quantity; i++) {
+      state.passwords.push(generatePassword(state.options.length, charset));
+    }
+    renderPasswords();
+  }
+
+  function updateCheckboxes() {
+    var checks = [els.optUpper, els.optLower, els.optNumbers, els.optSymbols];
+    var checkedCount = checks.filter(function(c) { return c.checked; }).length;
+
+    checks.forEach(function(c) {
+      c.disabled = checkedCount <= 1 && c.checked;
+    });
+  }
+
+  function init() {
+    els.lengthSlider.value = state.options.length;
+    els.lengthValue.textContent = state.options.length;
+    els.quantitySlider.value = state.options.quantity;
+    els.quantityValue.textContent = state.options.quantity;
+
+    els.lengthSlider.addEventListener('input', function() {
+      state.options.length = parseInt(this.value);
+      els.lengthValue.textContent = this.value;
+      generate();
+    });
+
+    els.quantitySlider.addEventListener('input', function() {
+      state.options.quantity = parseInt(this.value);
+      els.quantityValue.textContent = this.value;
+      generate();
+    });
+
+    els.optUpper.addEventListener('change', function() {
+      state.options.upper = this.checked;
+      updateCheckboxes();
+      generate();
+    });
+
+    els.optLower.addEventListener('change', function() {
+      state.options.lower = this.checked;
+      updateCheckboxes();
+      generate();
+    });
+
+    els.optNumbers.addEventListener('change', function() {
+      state.options.numbers = this.checked;
+      updateCheckboxes();
+      generate();
+    });
+
+    els.optSymbols.addEventListener('change', function() {
+      state.options.symbols = this.checked;
+      updateCheckboxes();
+      generate();
+    });
+
+    els.toggleAmbiguous.addEventListener('click', function() {
+      state.options.ambiguous = !state.options.ambiguous;
+      this.classList.toggle('on', state.options.ambiguous);
+      this.setAttribute('aria-checked', state.options.ambiguous);
+      generate();
+    });
+
+    els.btnGenerate.addEventListener('click', generate);
+
+    els.btnCopy.addEventListener('click', function() {
+      if (state.passwords.length === 1) {
+        copyToClipboard(state.passwords[0], els.btnCopy);
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+        e.preventDefault();
+        generate();
+      }
+    });
+
+    updateCheckboxes();
+    generate();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
