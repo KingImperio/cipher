@@ -18,7 +18,7 @@ Cipher generates cryptographically secure passwords using crypto.getRandomValues
 Download or clone the repo. Open index.html in a browser. No build step required.
 
 ## Live demo
-placeholder text "https://"
+https://kingimperio.github.io/cipher/
 
 ## Part of
 
